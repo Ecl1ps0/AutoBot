@@ -29,7 +29,7 @@ class LinkedInBot(Bot):
         try:
             self.driver.get(self.login_link)
             self.logger.info(
-                F"Start login to LinkedIn account with id: {self.token["id"]} and email: {self.token["email"]}, on proxy: {self.proxy}")
+                F"Start login to LinkedIn account with id: {self.token['id']} and email: {self.token['email']}, on proxy: {self.proxy}")
             self.driver.maximize_window()
         except Exception as e:
             self.logger.exception(f"Failed to open the link with Exception: {str(e)}")
@@ -120,6 +120,7 @@ class LinkedInBot(Bot):
     def update_token_to_active(self) -> None:
         if not self.token:
             self.logger.info("Email field is empty!")
+            self._close_driver()
             raise Exception("The token email is empty!")
 
         if self._login() is False:
@@ -237,11 +238,11 @@ class LinkedInBot(Bot):
 
         self.wait.until(ec.element_to_be_clickable((By.ID, "email-confirmation-input"))).send_keys(verification_code)
 
-        self.wait.until(ec.element_to_be_clickable((By.ID, "ember155"))).click()
+        # time.sleep(1000000)
 
-        print(self.driver.find_element(By.ID, "onboarding-job-seeker-intent-radio-button-INACTIVE"))
-        self.driver.find_element(By.ID, "onboarding-job-seeker-intent-radio-button-INACTIVE").click()
-        self.wait.until(ec.element_to_be_clickable((By.ID, "ember160"))).click()#ember26
+        self.driver.find_element(By.XPATH, "/html/body/div[5]/div[3]/div/div[2]/div/div/main/div/section/section/div/fieldset/div[3]/label").click()
+
+        self.wait.until(ec.element_to_be_clickable((By.ID, "ember26"))).click()
 
         self.wait.until(ec.element_to_be_clickable((By.ID, "ember362"))).click()
         self.wait.until(ec.element_to_be_clickable((By.ID, "ember370"))).click()
@@ -263,6 +264,7 @@ class LinkedInBot(Bot):
     def create_new_token(self, email: str | None = None) -> None:
         if not self._register(email):
             self.logger.info("Failed to register!")
+            self._close_driver()
             return
 
         try:

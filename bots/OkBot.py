@@ -30,7 +30,7 @@ class OkBot(Bot):
         try:
             self.driver.get(self.login_link)
             self.logger.info(
-                F"Start login to Ok account with id: {self.token["id"]} and phone: {self.token["phone"]}, on proxy: {self.proxy}")
+                F"Start login to Ok account with id: {self.token['id']} and phone: {self.token['phone']}, on proxy: {self.proxy}")
             self.driver.maximize_window()
         except Exception as e:
             self.logger.exception(f"Failed to open the link with Exception: {str(e)}")
