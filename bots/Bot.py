@@ -15,7 +15,9 @@ class Bot(ABC):
         self.driver_options = {
             'proxy': {
                 'http': f'http://{proxy}',
-            }
+            },
+            'connection_timeout': None,
+            'verify_ssl': False,
         }
 
         self.driver = webdriver.Chrome(seleniumwire_options=self.driver_options)
@@ -40,4 +42,3 @@ class Bot(ABC):
                 self.driver.close()
             except Exception as e:
                 self.logger.exception(f"Failed to close webdriver with this exception: {str(e)}")
-                print(f"Error closing WebDriver: {str(e)}")
