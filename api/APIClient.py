@@ -54,6 +54,8 @@ class APIClient:
                         verification_code = response[0]["subject"][-6:]
                         return verification_code.strip()
                     except IndexError:
+                        time.sleep(10)
+                        self.logger.info("Fail to fetch verification code! Repeat fetching!")
                         self.get_verification_code(params, source, is_registration)
 
                 regex_pattern = r'(\d{6})'
@@ -62,6 +64,7 @@ class APIClient:
                     return verification_code.strip()
                 except (IndexError, None):
                     time.sleep(10)
+                    self.logger.info("Fail to fetch verification code! Repeat fetching!")
                     self.get_verification_code(params, source, is_registration)
 
             case Source.Twitter:
@@ -77,6 +80,7 @@ class APIClient:
 
                     return verification_code.strip()
                 except IndexError:
+                    time.sleep(10)
                     self.logger.info("Fail to fetch verification code! Repeat fetching!")
                     self.get_verification_code(params, source, is_registration)
                     
@@ -88,6 +92,7 @@ class APIClient:
                     params['action'] = "readMessage"
                     params['id'] = mail_id
                 except Exception as e:
+                    time.sleep(10)
                     self.logger.info(f"Fail to fetch verification code! Repeat fetching! {e}")
                     self.get_verification_code(params, source, is_registration)
 
