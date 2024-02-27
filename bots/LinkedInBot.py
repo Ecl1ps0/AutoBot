@@ -1,4 +1,6 @@
+import os.path
 import time
+import openpyxl
 
 import names
 from selenium.webdriver.common.by import By
@@ -22,6 +24,8 @@ class LinkedInBot(Bot):
         self.login_link = 'https://www.linkedin.com/'
         self.registration_link = 'https://www.linkedin.com/signup'
         self.source = Source.LinkedIn
+
+        self.report_path = "login_report.xlsx"
 
         self.logger = get_logger(__name__)
 
@@ -109,7 +113,7 @@ class LinkedInBot(Bot):
 
         try:
             self.wait.until(ec.presence_of_element_located((By.CLASS_NAME, "scaffold-layout__sidebar")))
-            self.logger.info(f"Succeed Log In to the token with id: {self.token["id"]}!")
+            self.logger.info(f"Succeed Log In to the token with id: {self.token['id']}!")
             self._close_driver()
             return True
         except TimeoutException as e:
@@ -181,7 +185,9 @@ class LinkedInBot(Bot):
 
             self.driver.find_element(By.ID, "captcha-challenge")
             self.logger.info("Need to pass CAPTCHA!")
-            input('Continue?\n')
+            val = input('Continue?\n')
+            if val == "skip":
+                return False
         except NoSuchElementException:
             self.logger.info("No need pass CAPTCHA!")
             self.driver.switch_to.default_content()
@@ -202,13 +208,16 @@ class LinkedInBot(Bot):
                 ec.element_to_be_clickable((By.ID, "typeahead-input-for-city-district"))).get_attribute("value")
 
             if not city:
-                input("Insert city, do not press continue button!")
+                input("Insert city, do not press continue button!\n")
+
+            self.driver.find_element(By.ID, "ember10").click()
+
+            self.wait.until(ec.element_to_be_clickable((By.ID, "ember16"))).click()
         except TimeoutException:
             self.logger.info("No need to insert city!")
+            self.wait.until(ec.element_to_be_clickable((By.ID, "ember9"))).click()
 
-        self.wait.until(ec.element_to_be_clickable((By.ID, "ember9"))).click()
-
-        self.wait.until(ec.element_to_be_clickable((By.ID, "ember15"))).click()
+        self.wait.until(ec.element_to_be_clickable((By.CLASS_NAME, "artdeco-button--tertiary"))).click()
 
         self.wait.until(ec.element_to_be_clickable((By.ID, "typeahead-input-for-school-name"))).send_keys(
             "University of Cambridge")
@@ -238,15 +247,19 @@ class LinkedInBot(Bot):
 
         self.wait.until(ec.element_to_be_clickable((By.ID, "email-confirmation-input"))).send_keys(verification_code)
 
-        # time.sleep(1000000)
+        # time.sleep(5)
+        # self.driver.find_element(By.CSS_SELECTOR, "label[for=onboarding-job-seeker-intent-radio-button-INACTIVE]").click()
 
-        self.driver.find_element(By.XPATH, "/html/body/div[5]/div[3]/div/div[2]/div/div/main/div/section/section/div/fieldset/div[3]/label").click()
+        self.wait.until(ec.element_to_be_clickable((By.CSS_SELECTOR, "label[for=onboarding-job-seeker-intent-radio-button-INACTIVE]"))).click()
 
         self.wait.until(ec.element_to_be_clickable((By.ID, "ember26"))).click()
 
-        self.wait.until(ec.element_to_be_clickable((By.ID, "ember362"))).click()
-        self.wait.until(ec.element_to_be_clickable((By.ID, "ember370"))).click()
-        self.wait.until(ec.element_to_be_clickable((By.ID, "ember373"))).click()
+        self.wait.until(ec.element_to_be_clickable((By.CLASS_NAME, "onboarding-combo-bar__skip"))).click()
+        self.wait.until(ec.element_to_be_clickable((By.CLASS_NAME, "artdeco-button.artdeco-button--muted.artdeco-button--4.artdeco-button--tertiary.ember-view.full-width.mv4"))).click()
+        try:
+            self.driver.find_element(By.CLASS_NAME, "onboarding-get-the-app__next").click()
+        except NoSuchElementException:
+            pass
 
         self.token["email"] = email
         self.token["proxy"] = next(self.client.get_proxies(configs.us_proxy_params), None)
@@ -274,3 +287,25 @@ class LinkedInBot(Bot):
         except Exception as e:
             self.logger.exception(f"Failed to create a new token: {str(e)}")
             self._close_driver()
+
+    def __create_report(self) -> None:
+        report = {
+            'id': self.token['id'],
+            'env': self.token['env'],
+            'askedPhoneNumber': False,
+            'askedIdentityVerification': False,
+            'hasCAPTCHA': False,
+            'hasVerificationCode': False,
+            'isBlocked': False,
+        }
+
+        if not os.path.exists(self.report_path):
+            workbook = openpyxl.Workbook()
+            workbook.save(self.report_path)
+
+        with openpyxl.load_workbook(self.report_path) as workbook:
+            sheet = workbook.active
+
+            sheet.append(report.values())
+
+            workbook.save("login_report.xlsx")
