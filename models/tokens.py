@@ -14,7 +14,7 @@ linkedin_token = {
     "created_by": "d.tsoy",
     "department": "webint",
     "email": "",
-    "env": "runover",
+    "env": "introdex",
     "password": "strongPASS",
     "proxy": "",
     "resource": "linkedin",
