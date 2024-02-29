@@ -257,7 +257,8 @@ class LinkedInBot(Bot):
         self.wait.until(ec.element_to_be_clickable((By.CLASS_NAME, "onboarding-combo-bar__skip"))).click()
         self.wait.until(ec.element_to_be_clickable((By.CLASS_NAME, "artdeco-button.artdeco-button--muted.artdeco-button--4.artdeco-button--tertiary.ember-view.full-width.mv4"))).click()
         try:
-            self.driver.find_element(By.CLASS_NAME, "onboarding-get-the-app__next").click()
+            time.sleep(5)
+            self.driver.find_element(By.XPATH, "/html/body/div[5]/div[3]/div/div[2]/div/div/main/div/div/div/div[2]/section/div[2]").find_element(By.TAG_NAME, "button").click()
         except NoSuchElementException:
             pass
 
